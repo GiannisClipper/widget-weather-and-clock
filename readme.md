@@ -5,7 +5,7 @@ User has to include a tag like <script src='widget-weather-and-clock.js'></scrip
 - TimeRefresh (in milliseconds) define how frequent data refresh, if ommitted the default value is 90000 (15 minutes). 
 - Remarks is a simple string displaying at the bottom line of the widget.
 
-Code gets information making requests to third party API's:
+Code gets information making requests to third party APIs:
 - From api.openweathermap.org gets weather data, with requests commited via gc-info.herokuapp.com (custom server written in Flask/Python) to bypass Cross Origin blocks.
 - From api.timezonedb.com gets local times, with requests commited via gc-info.herokuapp.com too.
 - From ipapi.co gets location coordinates that corresponds to client IP, with requests straight from the client.
