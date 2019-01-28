@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Demo widget-weather-and-clock</title>
+  <style>
+    .widget-weather {
+      display:inline-block;
+      width:200px;
+      padding:1em;
+      background:lightgreen;
+      color:brown;
+      outline:2px dashed brown;
+      outline-offset: -6px;
+      font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+  </style>
+  <script src='widget-weather-and-clock.js'></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    })
+  </script>
+</head>
+<body>
+  <h1>Demo widget-weather-and-clock</h1>
+  <span class="widget-weather">
+    <!--Auto (from IP), set refresh every 10'-->
+    <script>new WeatherApiWidget(null, null, 600000, 'Auto from IP, refresh=10\'');</script>
+  </span>
+
+  <span class="widget-weather">
+    <!--Thessaloniki, default refresh every 15'-->
+    <script>new WeatherApiWidget(40.64361, 22.93086, null, 'Thessaloniki, refresh=15\'');</script>
+  </span>
+
+  <span class="widget-weather">
+    <!--New York, default refresh every 15'-->
+    <script>new WeatherApiWidget(40.71427, -74.00597, null, 'New York, refresh=15\'');</script>
+  </span>
+
+  <span class="widget-weather">
+    <!--Moscow, default refresh every 15'-->
+    <script>new WeatherApiWidget(55.753887, 37.621225, null, 'Moscow, refresh=15\'');</script>
+  </span>
+</body>
+</html>
