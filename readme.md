@@ -1,6 +1,6 @@
-This code is developed for demo and educational purposes. Creates one or more widgets inside a web page showing information about the weather and the local time in any place of the world. 
+Code developed for demo and educational purposes. Creates one or more widgets inside a web page showing information about the weather and the local time in any place of the world. 
 
-User has to include a tag like <script src='widget-weather-and-clock.js'></script> inside <head> section and one or more tags like <script>new WeatherApiWidget(latitude, longitude, timeRefresh, remarks);</script> inside <body> section wherever wish. All the arguments are optional:
+User has to include a tag like <script src='widget-weather-and-clock.js'></script> inside head section and one or more tags like <script>new WeatherApiWidget(latitude, longitude, timeRefresh, remarks);</script> inside body section wherever wish. All the arguments are optional:
 - Latitude and longitude (ex. 37.983810, 23.727539) represent location coordinates on the map, if ommitted the code automatically place them with coordinates that corresponds to client IP. 
 - TimeRefresh (in milliseconds) define how frequent data refresh, if ommitted the default value is 90000 (15 minutes). 
 - Remarks is a simple string displaying at the bottom line of the widget.
