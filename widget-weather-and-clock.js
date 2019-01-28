@@ -11,8 +11,8 @@
 class Api {
   constructor(api, timeRefresh, timeRetry, limitRetry) {
     this.api=!api?null:api;
-    this.timeRefresh=!timeRefresh?0:timeRefresh; //delay to refresh request, by default 0 (false)
-    this.timeRetry=!timeRetry?0:timeRetry; //delay to retry when response is an error, by default 0 (false)
+    this.timeRefresh=!timeRefresh?0:timeRefresh; //delay to refresh request (milliseconds), by default 0 (false)
+    this.timeRetry=!timeRetry?0:timeRetry; //delay to retry when response is an error (milliseconds), by default 0 (false)
     this.limitRetry=!limitRetry?4:limitRetry; //to control number of retries, by default 4
     this.countRetry;
   }
