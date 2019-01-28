@@ -10,4 +10,6 @@ Code gets information making requests to third party APIs:
 - From api.timezonedb.com gets local times, with requests commited via gc-info.herokuapp.com too.
 - From ipapi.co gets location coordinates that corresponds to client IP, with requests straight from the client.
 
+Live demo is here https://giannisclipper.github.io/widget-weather-and-clock/
+
 Athens 28 Jan 2019, Giannis Clipper
