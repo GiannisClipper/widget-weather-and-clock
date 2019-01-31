@@ -5,7 +5,7 @@
   <title>Demo widget-weather-and-clock</title>
   <style>
     body {
-      background:lightcoral;
+      background:lightslategrey;
       font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
       color:lightskyblue;
       text-align:center;
@@ -28,48 +28,27 @@
       width:90%;
       margin-left:auto;
       margin-right:auto;
-    }
-    .widget-weather {
-      display:inline-block;
-      width:200px;
-      padding:1em;
-      margin:0.25em;
-      background:lightskyblue;
-      outline:2px dashed brown;
-      outline-offset: -6px;
-      font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-      color:brown;
-      text-align:left;
+      margin-top:4em;
+      margin-bottom:4em;
     }
   </style>
   <script src='widget-weather-and-clock.js'></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    })
-  </script>
 </head>
+
 <body>
   <header>Demo widget-weather-and-clock</header>
   <section>
-    <span class="widget-weather">
-      <!--Auto (from IP), set refresh every 10'-->
-      <script>new WeatherApiWidget(null, null, 600, 'Auto from IP, refresh=10\'');</script>
-    </span>
+    <!--Auto (from IP), set refresh every 10'-->
+    <script>new WeatherApiWidget({timeRefresh:600000, width:220, border:'1px solid darkblue', background:'khaki', color:'darkblue'});</script>
 
-    <span class="widget-weather">
-      <!--Thessaloniki, default refresh every 15'-->
-      <script>new WeatherApiWidget(40.64361, 22.93086, null, 'Thessaloniki, refresh=15\'');</script>
-    </span>
+    <!--Thessaloniki, default refresh every 15'-->
+    <script>new WeatherApiWidget({latitude:40.64361, longitude:22.93086});</script>
 
-    <span class="widget-weather">
-      <!--New York, default refresh every 15'-->
-      <script>new WeatherApiWidget(40.71427, -74.00597, null, 'New York, refresh=15\'');</script>
-    </span>
+    <!--New York, default refresh every 15'-->
+    <script>new WeatherApiWidget({latitude:40.71427, longitude:-74.00597});</script>
 
-    <span class="widget-weather">
-      <!--Moscow, default refresh every 15'-->
-      <script>new WeatherApiWidget(55.753887, 37.621225, null, 'Moscow, refresh=15\'');</script>
-    </span>
+    <!--Moscow, default refresh every 15'-->
+    <script>new WeatherApiWidget({latitude:55.753887, longitude:37.621225});</script>
   </section>
   <footer>Athens 2019, Giannis Clipper</footer>
 </body>

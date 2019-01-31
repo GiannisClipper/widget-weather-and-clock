@@ -1,11 +1,11 @@
 /*
-                +--------------+
-          +---> |class ClockApi| -----+
-+---------+     +--------------+      |  
-|class Api|                           V
-+---------+     +---------------+     +----------------------+
-          +---> |class ApiWidget| --> |class WeatherApiWidget|
-                +---------------+     +----------------------+
+                  +----------------+
+          +-----> | class ClockApi | -------+
++-----------+     +----------------+        |  
+| class Api |                               V
++-----------+     +-----------------+     +------------------------+
+          +-----> | class ApiWidget | --> | class WeatherApiWidget |
+                  +-----------------+     +------------------------+
 */
 
 class Api {
@@ -88,14 +88,14 @@ class ApiWidget extends Api {
 
   constructor(api, timeRefresh) {
     super(api, !timeRefresh?null:timeRefresh);
-    this.$root=document.createElement('div'); //widget root <tag>
-    //get current position in document and place widget root <tag>
+     //define widget's root <tag> and place it in current script position in document
+    this.$body=document.createElement('div');  
     let $script=document.currentScript || (()=> document.getElementsByTagName('script')[-1])();
-    $script.parentElement.appendChild(this.$root);
+    $script.parentElement.appendChild(this.$body);
   }
 
   exportData(res) {
-    this.$root.textContent=res;
+    this.$body.textContent=res;
   }
 }
 
@@ -103,34 +103,22 @@ class ApiWidget extends Api {
 
 class WeatherApiWidget extends ApiWidget {
 
-  constructor(latitude, longitude, timeRefresh, remark) {
-    super(null, !timeRefresh?900000:timeRefresh); //default refresh 15'
+  constructor(args) {
+    super();
+    this.args=args?args:{};
+    this.setHTML();
+    this.setTooltip(args);
+    this.setClock();
+    this.setArgs(args);
+    this.setStyle(args);
 
+    this.timeRefresh=args['timeRefresh'];
     this.origin='https://gc-info.herokuapp.com'; //'http://localhost:5000';
-    this.latitude=!latitude?null:latitude;
-    this.longitude=!longitude?null:longitude;
+    this.latitude=args['latitude'];
+    this.longitude=args['longitude'];
     this.api=`${this.origin}/api/weather?latitude=${this.latitude}&longitude=${this.longitude}`;
-
-    this.$root.innerHTML=`
-      <p><span class="location"></span> [<span class="localtime"></span>]</p>
-      <p><span class="temperature" style="font-size:1.25em;"></span> &#8451;</p>
-      <img class="icon"/>
-      <p class="description"></p>
-      <p>Υγρασία: <span class="humidity"></span>%</p>
-      <p>Άνεμος: <span class="wind"></span></p>
-      <div style="font-size:0.75em;">Update: <span class="update"></span></div>
-      <div style="font-size:0.75em;">Remark: <span class="remark"></span></div>
-    `;
-
-    this.remark=!remark?'':remark;
-    this.clock=new ClockApi(null, null, 1000, 8, timestamp=> {
-      let date=new Date(timestamp*1000); //unix timestamp is in seconds but js date() is in milliseconds
-      let hours='0'+date.getUTCHours();
-      let minutes='0'+date.getUTCMinutes();
-      this.$root.querySelector('.localtime').textContent=(hours.substr(-2)+':'+minutes.substr(-2));
-    });
   
-    if (latitude && longitude) {
+    if (this.latitude && this.longitude) {
       this.run();
       this.clock.api=`${this.origin}/api/clock?latitude=${this.latitude}&longitude=${this.longitude}`;
       this.clock.run();
@@ -149,18 +137,91 @@ class WeatherApiWidget extends ApiWidget {
     }
   }
 
+  setHTML() {
+    this.$body.className='widget-weather-and-clock';
+    this.$body.innerHTML=`
+      <p><span class="location"></span><span class="localtime"></span></p>
+      <p><span class="temperature"></span> &#8451;</p>
+      <img class="icon"/>
+      <p class="description"></p>
+      <p>ΥΓΡΑΣΙΑ <span class="humidity"></span>%</p>
+      <p>ΑΝΕΜΟΣ <span class="wind"></span></p>
+      <span class="tooltip"><div class="args"></div><div class="update"></div></span>  
+    `;
+  }
+
+  setTooltip(args) {
+    this.$body.querySelector('.args').innerHTML=`
+      latitude: ${args['latitude']?args['latitude']+' (user)':'Auto detected IP (default)'}<br>
+      longitude: ${args['longitude']?args['longitude']+' (user)':'Auto detected IP (default)'}<br>
+      timeRefresh: ${args['timeRefresh']?args['timeRefresh']/60000+'\' (user)':'15\' (default)'}<br>
+      width: ${args['width']?args['width']+'px (user)':'200px (default)'}<br>
+      border: ${args['border']?args['border']+' (user)':'0px (default)'}<br>
+      background: ${args['background']?args['background']+' (user)':'lightskyblue (default)'}<br>
+      color: ${args['color']?args['color']+' (user)':'brown (default)'}<br>
+    `;
+
+    this.$body.addEventListener('mouseover', ()=>this.$body.querySelector('.tooltip').style.visibility='visible'); 
+    this.$body.addEventListener('mouseout', ()=>this.$body.querySelector('.tooltip').style.visibility='hidden'); 
+  }
+
+  setClock() {
+    this.clock=new ClockApi(null, null, 1000, 8, timestamp=> {
+      let date=new Date(timestamp*1000); //unix timestamp is in seconds but js date() is in milliseconds
+      let hours='0'+date.getUTCHours();
+      let minutes='0'+date.getUTCMinutes();
+      this.$body.querySelector('.localtime').textContent=(hours.substr(-2)+':'+minutes.substr(-2));
+    });
+  }
+
+  setArgs(args) {
+    args['latitude']=args['latitude']?args['latitude']:null;
+    args['longitude']=args['longitude']?args['longitude']:null;
+    args['timeRefresh']=args['timeRefresh']?args['timeRefresh']:900000; //default refresh 15'
+    args['width']=args['width']?`${parseInt(args['width'])}px`:'200px';
+    args['border']=args['border']?args['border']:'0px';
+    args['background']=args['background']?args['background']:'lightskyblue';
+    args['color']=args['color']?args['color']:'brown';
+    args['font-size']=`${Math.round(parseInt(args['width'])/14)}px`;
+  }
+
+  setStyle(args) {    
+    this.$body.style.width=args['width'];
+    this.$body.style.border=args['border'];
+    this.$body.style.background=args['background']; 
+    this.$body.style.fontSize=args['font-size'];
+    this.$body.style.color=args['color'];
+
+    this.$body.querySelector('.location').style.fontSize='1.25em';
+    this.$body.querySelector('.localtime').style.border=`1px dotted ${args['color']}`;
+    this.$body.querySelector('.temperature').style.fontSize='1.50em';
+    this.$body.querySelector('.description').style.fontSize='1.20em';
+    this.$body.querySelector('.tooltip').style.fontSize='0.75em';
+  }
+
   exportData(res) {
     if (res.weather) {
-      this.$root.querySelector('.location').textContent=res.name;
-      this.$root.querySelector('.icon').src=`http://openweathermap.org/img/w/${res.weather[0].icon}.png`;
-      this.$root.querySelector('.description').textContent=res.weather[0].description;
-      this.$root.querySelector('.temperature').textContent=Math.round(Number(res.main.temp));
-      this.$root.querySelector('.humidity').textContent=res.main.humidity;
-      this.$root.querySelector('.wind').textContent=res.wind.speed;
-      this.$root.querySelector('.update').textContent=(new Date).toString().slice(0,24);
+      this.$body.querySelector('.location').textContent=res.name;
+      this.$body.querySelector('.icon').src=`http://openweathermap.org/img/w/${res.weather[0].icon}.png`;
+      this.$body.querySelector('.description').textContent=res.weather[0].description;
+      this.$body.querySelector('.temperature').textContent=Math.round(Number(res.main.temp));
+      this.$body.querySelector('.humidity').textContent=res.main.humidity;
+      this.$body.querySelector('.wind').textContent=res.wind.speed;
+      this.$body.querySelector('.update').textContent=`updated: ${(new Date).toString().slice(16,24)}`;
     } else {
-      this.$root.querySelector('.update').textContent='no response';
+      this.$body.querySelector('.update').textContent='no response';
     }
-    this.$root.querySelector('.remark').textContent=this.remark;
   }
+}
+
+let cssFile='widget-weather-and-clock';
+if (!document.querySelector(`#${cssFile}`)) {
+    let head=document.getElementsByTagName('head')[0];
+    let link=document.createElement('link');
+    link.id=cssFile;
+    link.rel='stylesheet';
+    link.type='text/css';
+    link.href=cssFile+'.css';
+    link.media='all';
+    head.appendChild(link);
 }
