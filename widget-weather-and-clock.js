@@ -105,36 +105,82 @@ class WeatherApiWidget extends ApiWidget {
 
   constructor(args) {
     super();
+    this._location={en:null, gr:null};
+    this.origin='http://localhost:5000';
+    //this.origin='https://gc-info.herokuapp.com'; 
+
     this.args=args?args:{};
     this.setHTML();
     this.setTooltip(args);
-    this.setClock();
     this.setArgs(args);
     this.setStyle(args);
+    this.setClock();
 
     this.timeRefresh=args['timeRefresh'];
-    this.origin='https://gc-info.herokuapp.com'; //'http://localhost:5000';
-    this.latitude=args['latitude'];
-    this.longitude=args['longitude'];
-    this.api=`${this.origin}/api/weather?latitude=${this.latitude}&longitude=${this.longitude}`;
-  
-    if (this.latitude && this.longitude) {
-      this.run();
-      this.clock.api=`${this.origin}/api/clock?latitude=${this.latitude}&longitude=${this.longitude}`;
-      this.clock.run();
+
+    //given coords by user
+    if (args['latitude'] && args['longitude']) {
+      this.continueConstruct(args['latitude'], args['longitude'])
+    
+    //or locate coords from ip
     } else {
       fetch('https://ipapi.co/json/')
       .then(res=> res.json())
       .then(res=> {
-        this.latitude=res.latitude;
-        this.longitude=res.longitude;
-        this.api=`${this.origin}/api/weather?latitude=${this.latitude}&longitude=${this.longitude}`;
-        this.run();
-        this.clock.api=`${this.origin}/api/clock?latitude=${this.latitude}&longitude=${this.longitude}`;
-        this.clock.run();
+        this.location=res.city;
+        this.continueConstruct(res.latitude, res.longitude);
       })
       .catch(err=> consolre.log('ipapi.co:', err.message));
     }
+  }
+
+  set location(name) {
+    this._location.en=name;
+  }
+
+  get location() {
+    return this._location.en;
+  }
+
+  async locationInGreek() {
+    if (!this._location.gr) {
+      let res=await fetch(`${this.origin}/api/translate?lang=en-el&text=${this._location.en}`);
+      res=await res.json();
+      this._location.gr=res.text[0];
+    }
+    return this._location.gr;
+  }
+
+  setIcon(name) {
+    let path='.\\icons\\';
+    if (name==='01d') return `${path}01d.png`;
+    else if (name==='01n') return `${path}01n.png`;
+    else if (name==='02d') return `${path}02d.png`;
+    else if (name==='02n') return `${path}02n.png`;
+    else if (name==='03d') return `${path}03d03n04d04n.png`;
+    else if (name==='03n') return `${path}03d03n04d04n.png`;
+    else if (name==='04d') return `${path}03d03n04d04n.png`;
+    else if (name==='04n') return `${path}03d03n04d04n.png`;
+    else if (name==='09d') return `${path}09d09n.png`;
+    else if (name==='09n') return `${path}09d09n.png`;
+    else if (name==='10d') return `${path}10d10n.png`;
+    else if (name==='10n') return `${path}10d10n.png`;
+    else if (name==='11d') return `${path}11d11n.png`;
+    else if (name==='11n') return `${path}11d11n.png`;
+    else if (name==='13d') return `${path}13d13n.png`;
+    else if (name==='13n') return `${path}13d13n.png`;
+    else if (name==='50d') return `${path}50d50n.png`;
+    else if (name==='50n') return `${path}50d50n.png`;
+    else return `http://openweathermap.org/img/w/${name}.png`;
+  }
+
+  continueConstruct(latitude, longitude) {
+    this.latitude=latitude;
+    this.longitude=longitude;
+    this.api=`${this.origin}/api/weather?lang=el&latitude=${this.latitude}&longitude=${this.longitude}`;
+    this.run();
+    this.clock.api=`${this.origin}/api/clock?latitude=${this.latitude}&longitude=${this.longitude}`;
+    this.clock.run();
   }
 
   setHTML() {
@@ -151,7 +197,7 @@ class WeatherApiWidget extends ApiWidget {
   }
 
   setTooltip(args) {
-    this.$body.querySelector('.args').innerHTML=`
+/*    this.$body.querySelector('.args').innerHTML=`
       latitude: ${args['latitude']?args['latitude']+' (user)':'Auto detected IP (default)'}<br>
       longitude: ${args['longitude']?args['longitude']+' (user)':'Auto detected IP (default)'}<br>
       timeRefresh: ${args['timeRefresh']?args['timeRefresh']/60000+'\' (user)':'15\' (default)'}<br>
@@ -159,19 +205,10 @@ class WeatherApiWidget extends ApiWidget {
       border: ${args['border']?args['border']+' (user)':'0px (default)'}<br>
       background: ${args['background']?args['background']+' (user)':'lightskyblue (default)'}<br>
       color: ${args['color']?args['color']+' (user)':'brown (default)'}<br>
-    `;
+    `;*/
 
     this.$body.addEventListener('mouseover', ()=>this.$body.querySelector('.tooltip').style.visibility='visible'); 
     this.$body.addEventListener('mouseout', ()=>this.$body.querySelector('.tooltip').style.visibility='hidden'); 
-  }
-
-  setClock() {
-    this.clock=new ClockApi(null, null, 1000, 8, timestamp=> {
-      let date=new Date(timestamp*1000); //unix timestamp is in seconds but js date() is in milliseconds
-      let hours='0'+date.getUTCHours();
-      let minutes='0'+date.getUTCMinutes();
-      this.$body.querySelector('.localtime').textContent=(hours.substr(-2)+':'+minutes.substr(-2));
-    });
   }
 
   setArgs(args) {
@@ -199,15 +236,26 @@ class WeatherApiWidget extends ApiWidget {
     this.$body.querySelector('.tooltip').style.fontSize='0.75em';
   }
 
-  exportData(res) {
+  setClock() {
+    this.clock=new ClockApi(null, null, 1000, 8, timestamp=> {
+      let date=new Date(timestamp*1000); //unix timestamp is in seconds but js date() is in milliseconds
+      let hours='0'+date.getUTCHours();
+      let minutes='0'+date.getUTCMinutes();
+      this.$body.querySelector('.localtime').textContent=(hours.substr(-2)+':'+minutes.substr(-2));
+    });
+  }
+
+  async exportData(res) {
     if (res.weather) {
-      this.$body.querySelector('.location').textContent=res.name;
-      this.$body.querySelector('.icon').src=`http://openweathermap.org/img/w/${res.weather[0].icon}.png`;
+      this.location=this.location?this.location:res.name;
+      this.$body.querySelector('.location').textContent=await this.locationInGreek();
+      this.$body.querySelector('.icon').src=this.setIcon(res.weather[0].icon);
+      //this.$body.querySelector('.icon').src=`http://openweathermap.org/img/w/${res.weather[0].icon}.png`;
       this.$body.querySelector('.description').textContent=res.weather[0].description;
       this.$body.querySelector('.temperature').textContent=Math.round(Number(res.main.temp));
       this.$body.querySelector('.humidity').textContent=res.main.humidity;
       this.$body.querySelector('.wind').textContent=res.wind.speed;
-      this.$body.querySelector('.update').textContent=`updated: ${(new Date).toString().slice(16,24)}`;
+      this.$body.querySelector('.update').textContent=`updated ${(new Date).toString().slice(16,24)}`;
     } else {
       this.$body.querySelector('.update').textContent='no response';
     }
