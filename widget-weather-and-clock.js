@@ -32,7 +32,7 @@ class Api {
     console.log('requestApi:', this.api);
     fetch(this.api)
     .then(res=> res.json())
-    .then(res=> this.exportData(res))
+    .then(res=> this.callback(res))
     .catch(err=> {
       console.log('requestApi:', err.message);
       this.countRetry+=1;
@@ -41,7 +41,7 @@ class Api {
     });
   }
 
-  exportData(res) {
+  callback(res) {
     return res;
   }
 }
@@ -50,25 +50,25 @@ class Api {
 
 class ClockApi extends Api {
 
-  constructor(api, timeRefresh, timeRetry, limitRetry, callback) {
-    super(api, 
+  constructor(api, timeRefresh, timeRetry, limitRetry, output) {
+    super(api,
       !timeRefresh?null:timeRefresh, 
       !timeRetry?null:timeRetry, 
       !limitRetry?null:limitRetry);
     
     this.timestamp;
-    this.callback=!callback?(timestamp)=>{return timestamp;}:callback; //to output the time
+    this.output=!output?(timestamp)=>{return timestamp;}:output; //to display the time
     this.minuteRefresh; //interval to update time per minute
     this.systemTime; //track system time to quarantee timestamp accuracy (time update is
                     //based on interval and not a request and when pc suspended update stop) 
   }
 
-  exportData(res) {
+  callback(res) {
     //console.log(res.countryName, res.formatted);
     //multiple widgets in same page may have few seconds delay between initializations
     //rounding the seconds widgets time synchronization is more accurate
     this.timestamp=Math.round(Number(res.timestamp)/60)*60;
-    this.callback(this.timestamp);
+    this.output(this.timestamp);
     this.systemTime=Date.now();
     this.minuteRefresh=setInterval(()=> {
       this.systemTime+=60000; //js date in milliseconds
@@ -77,7 +77,7 @@ class ClockApi extends Api {
         clearInterval(this.minuteRefresh);
       }
       this.timestamp+=60; //unix timestamp in seconds
-      this.callback(this.timestamp);
+      this.output(this.timestamp);
     }, 60000);  //refresh per minute 
   }
 }
@@ -94,7 +94,7 @@ class ApiWidget extends Api {
     $script.parentElement.appendChild(this.$body);
   }
 
-  exportData(res) {
+  callback(res) {
     this.$body.textContent=res;
   }
 }
@@ -106,15 +106,15 @@ class WeatherApiWidget extends ApiWidget {
   constructor(args) {
     super();
     this._location={en:null, gr:null};
-    this.origin='http://localhost:5000';
-    //this.origin='https://gc-info.herokuapp.com'; 
+    //this.origin='http://localhost:5000';
+    this.origin='https://gc-info.herokuapp.com'; 
 
     this.args=args?args:{};
-    this.setHTML();
-    this.setTooltip(args);
-    this.setArgs(args);
-    this.setStyle(args);
-    this.setClock();
+    this.initArgs(args);
+    this.initHTML();
+    this.initStyle(args);
+    this.initClock();
+    this.initTooltip();
 
     this.timeRefresh=args['timeRefresh'];
 
@@ -151,8 +151,9 @@ class WeatherApiWidget extends ApiWidget {
     return this._location.gr;
   }
 
-  setIcon(name) {
-    let path='.\\icons\\';
+  getIcon(name) { 
+    //substitute openweather icons
+    let path=`./icons/`;
     if (name==='01d') return `${path}01d.png`;
     else if (name==='01n') return `${path}01n.png`;
     else if (name==='02d') return `${path}02d.png`;
@@ -183,35 +184,7 @@ class WeatherApiWidget extends ApiWidget {
     this.clock.run();
   }
 
-  setHTML() {
-    this.$body.className='widget-weather-and-clock';
-    this.$body.innerHTML=`
-      <p><span class="location"></span><span class="localtime"></span></p>
-      <p><span class="temperature"></span> &#8451;</p>
-      <img class="icon"/>
-      <p class="description"></p>
-      <p>ΥΓΡΑΣΙΑ <span class="humidity"></span>%</p>
-      <p>ΑΝΕΜΟΣ <span class="wind"></span></p>
-      <span class="tooltip"><div class="args"></div><div class="update"></div></span>  
-    `;
-  }
-
-  setTooltip(args) {
-/*    this.$body.querySelector('.args').innerHTML=`
-      latitude: ${args['latitude']?args['latitude']+' (user)':'Auto detected IP (default)'}<br>
-      longitude: ${args['longitude']?args['longitude']+' (user)':'Auto detected IP (default)'}<br>
-      timeRefresh: ${args['timeRefresh']?args['timeRefresh']/60000+'\' (user)':'15\' (default)'}<br>
-      width: ${args['width']?args['width']+'px (user)':'200px (default)'}<br>
-      border: ${args['border']?args['border']+' (user)':'0px (default)'}<br>
-      background: ${args['background']?args['background']+' (user)':'lightskyblue (default)'}<br>
-      color: ${args['color']?args['color']+' (user)':'brown (default)'}<br>
-    `;*/
-
-    this.$body.addEventListener('mouseover', ()=>this.$body.querySelector('.tooltip').style.visibility='visible'); 
-    this.$body.addEventListener('mouseout', ()=>this.$body.querySelector('.tooltip').style.visibility='hidden'); 
-  }
-
-  setArgs(args) {
+  initArgs(args) {
     args['latitude']=args['latitude']?args['latitude']:null;
     args['longitude']=args['longitude']?args['longitude']:null;
     args['timeRefresh']=args['timeRefresh']?args['timeRefresh']:900000; //default refresh 15'
@@ -222,7 +195,20 @@ class WeatherApiWidget extends ApiWidget {
     args['font-size']=`${Math.round(parseInt(args['width'])/14)}px`;
   }
 
-  setStyle(args) {    
+  initHTML() {
+    this.$body.className='widget-weather-and-clock';
+    this.$body.innerHTML=`
+      <p><span class="location"></span><span class="localtime"></span></p>
+      <p><span class="temperature"></span> &#8451;</p>
+      <img class="icon"/>
+      <p class="description"></p>
+      <p>ΥΓΡΑΣΙΑ <span class="humidity"></span>%</p>
+      <p>ΑΝΕΜΟΣ <span class="wind"></span></p>
+      <span class="tooltip"></span>
+    `;
+  }
+
+  initStyle(args) {    
     this.$body.style.width=args['width'];
     this.$body.style.border=args['border'];
     this.$body.style.background=args['background']; 
@@ -236,7 +222,7 @@ class WeatherApiWidget extends ApiWidget {
     this.$body.querySelector('.tooltip').style.fontSize='0.75em';
   }
 
-  setClock() {
+  initClock() {
     this.clock=new ClockApi(null, null, 1000, 8, timestamp=> {
       let date=new Date(timestamp*1000); //unix timestamp is in seconds but js date() is in milliseconds
       let hours='0'+date.getUTCHours();
@@ -245,23 +231,28 @@ class WeatherApiWidget extends ApiWidget {
     });
   }
 
-  async exportData(res) {
+  initTooltip() {
+    this.$body.addEventListener('mouseover', ()=>this.$body.querySelector('.tooltip').style.visibility='visible'); 
+    this.$body.addEventListener('mouseout', ()=>this.$body.querySelector('.tooltip').style.visibility='hidden'); 
+  }
+
+  async callback(res) {
     if (res.weather) {
       this.location=this.location?this.location:res.name;
       this.$body.querySelector('.location').textContent=await this.locationInGreek();
-      this.$body.querySelector('.icon').src=this.setIcon(res.weather[0].icon);
-      //this.$body.querySelector('.icon').src=`http://openweathermap.org/img/w/${res.weather[0].icon}.png`;
+      this.$body.querySelector('.icon').src=this.getIcon(res.weather[0].icon);
       this.$body.querySelector('.description').textContent=res.weather[0].description;
       this.$body.querySelector('.temperature').textContent=Math.round(Number(res.main.temp));
       this.$body.querySelector('.humidity').textContent=res.main.humidity;
       this.$body.querySelector('.wind').textContent=res.wind.speed;
-      this.$body.querySelector('.update').textContent=`updated ${(new Date).toString().slice(16,24)}`;
+      this.$body.querySelector('.tooltip').textContent=`updated ${(new Date).toString().slice(16,24)}`;
     } else {
-      this.$body.querySelector('.update').textContent='no response';
+      this.$body.querySelector('.tooltip').textContent='no response';
     }
   }
 }
 
+//code start running from here
 let cssFile='widget-weather-and-clock';
 if (!document.querySelector(`#${cssFile}`)) {
     let head=document.getElementsByTagName('head')[0];
