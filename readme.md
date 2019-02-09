@@ -1,6 +1,6 @@
 ## widget-weather-and-clock
 
-#### About
+### About
 Code developed for demo and educational purposes. Creates one or more widgets inside a web page showing information about the weather and the local time in any place of the world. 
 
 Code gets information making requests to third party APIs:
@@ -9,7 +9,7 @@ Code gets information making requests to third party APIs:
 - From __api.timezonedb.com__ gets local times (via gc-info.herokuapp.com too).
 - From __ipapi.co__ gets location coordinates that corresponds to client IP, with requests straight from the client.
 
-#### How to use
+### How to use
 User should include in head section a tag like this:
 ```
 <script src='widget-weather-and-clock.js'></script> 
