@@ -1,8 +1,6 @@
-widget-weather-and-clock
-========================
+##widget-weather-and-clock
 
-About
------
+####About
 Code developed for demo and educational purposes. Creates one or more widgets inside a web page showing information about the weather and the local time in any place of the world. 
 
 Code gets information making requests to third party APIs:
@@ -11,14 +9,19 @@ Code gets information making requests to third party APIs:
 - From api.timezonedb.com gets local times (via gc-info.herokuapp.com too).
 - From ipapi.co gets location coordinates that corresponds to client IP, with requests straight from the client.
 
-How to use
-----------
+####How to use
 User should include in head section a tag like this:
-- <script src='widget-weather-and-clock.js'></script> 
+```
+<script src='widget-weather-and-clock.js'></script> 
+```
 and in body section one or more tags like this:
-- <script>new WeatherApiWidget({latitude:37.983810, longitude:23.727539, timeRefresh:600000, width:180 border:'1px solid darkgreen', background:'cyan', color:'darkgreen'});</script>
+```
+<script>new WeatherApiWidget({latitude:37.983810, longitude:23.727539, timeRefresh:600000, width:180 border:'1px solid darkgreen', background:'cyan', color:'darkgreen'});</script>
+```
 or even like this: 
-```<script>new WeatherApiWidget();</script>```
+```
+<script>new WeatherApiWidget();</script>
+```
 
 All arguments are optional:
 - Latitude and longitude represent location coordinates on the map, if ommitted the code automatically place them with coordinates that corresponds to client IP. 
@@ -27,4 +30,4 @@ All arguments are optional:
 
 Live demo here https://giannisclipper.github.io/widget-weather-and-clock/
 
-Athens 2 Feb 2019, Giannis Clipper
+_Athens 2 Feb 2019, Giannis Clipper_
